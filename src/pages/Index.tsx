@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { currencies, CurrencyPair, Currency } from '@/data/currencies';
+import { currencies, CurrencyPair, Currency, ConversionRow } from '@/data/currencies';
 import { TabNavigator } from '@/components/TabNavigator';
 import { CurrencyPairSelector } from '@/components/CurrencyPairSelector';
 import { ExchangeChart } from '@/components/ExchangeChart';
@@ -11,12 +11,20 @@ function createPair(from: Currency, to: Currency): CurrencyPair {
   return { id: `pair-${++pairIdCounter}`, from, to };
 }
 
+let rowIdCounter = 0;
+function newRow(): ConversionRow {
+  return { id: `row-${++rowIdCounter}`, fromAmount: '', toAmount: '' };
+}
+
 const defaultPair = createPair(currencies[0], currencies[1]); // USD/EUR
 
 const Index = () => {
   const [tabs, setTabs] = useState<CurrencyPair[]>([defaultPair]);
   const [activeTabId, setActiveTabId] = useState<string>(defaultPair.id);
   const [showSelector, setShowSelector] = useState(false);
+  const [tabRows, setTabRows] = useState<Record<string, ConversionRow[]>>({
+    [defaultPair.id]: [newRow()],
+  });
 
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
 
@@ -30,6 +38,11 @@ const Index = () => {
         if (activeTabId === id) {
           setActiveTabId(filtered[0].id);
         }
+        setTabRows((r) => {
+          const copy = { ...r };
+          delete copy[id];
+          return copy;
+        });
         return filtered;
       });
     },
@@ -39,6 +52,7 @@ const Index = () => {
   const handleAcceptPair = (from: Currency, to: Currency) => {
     const pair = createPair(from, to);
     setTabs((prev) => [...prev, pair]);
+    setTabRows((prev) => ({ ...prev, [pair.id]: [newRow()] }));
     setActiveTabId(pair.id);
     setShowSelector(false);
   };
@@ -70,7 +84,12 @@ const Index = () => {
       {activeTab &&
       <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-6">
           <ExchangeChart pair={activeTab} />
-          <ConversionTable pair={activeTab} onSwap={handleSwapColumns} />
+          <ConversionTable
+            pair={activeTab}
+            rows={tabRows[activeTab.id] || [newRow()]}
+            onRowsChange={(rows) => setTabRows((prev) => ({ ...prev, [activeTab.id]: rows }))}
+            onSwap={handleSwapColumns}
+          />
         </div>
       }
 

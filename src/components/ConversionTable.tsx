@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { CurrencyPair, ConversionRow, getExchangeRate } from '@/data/currencies';
 import { ArrowLeftRight, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface ConversionTableProps {
   pair: CurrencyPair;
+  rows: ConversionRow[];
+  onRowsChange: (rows: ConversionRow[]) => void;
   onSwap: () => void;
 }
 
@@ -13,62 +14,54 @@ function newRow(): ConversionRow {
   return { id: `row-${++rowIdCounter}`, fromAmount: '', toAmount: '' };
 }
 
-export function ConversionTable({ pair, onSwap }: ConversionTableProps) {
-  const [rows, setRows] = useState<ConversionRow[]>([newRow()]);
+export function ConversionTable({ pair, rows, onRowsChange, onSwap }: ConversionTableProps) {
 
   const rate = getExchangeRate(pair.from.code, pair.to.code);
   const reverseRate = getExchangeRate(pair.to.code, pair.from.code);
 
   const handleFromChange = useCallback(
     (id: string, value: string) => {
-      setRows((prev) => {
-        const updated = prev.map((r) => {
-          if (r.id !== id) return r;
-          const num = parseFloat(value);
-          return {
-            ...r,
-            fromAmount: value,
-            toAmount: value && !isNaN(num) ? (num * rate).toFixed(2) : '',
-          };
-        });
-        // Add empty row if last row now has content
-        const last = updated[updated.length - 1];
-        if (last.fromAmount || last.toAmount) {
-          updated.push(newRow());
-        }
-        return updated;
+      const updated = rows.map((r) => {
+        if (r.id !== id) return r;
+        const num = parseFloat(value);
+        return {
+          ...r,
+          fromAmount: value,
+          toAmount: value && !isNaN(num) ? (num * rate).toFixed(2) : '',
+        };
       });
+      const last = updated[updated.length - 1];
+      if (last.fromAmount || last.toAmount) {
+        updated.push(newRow());
+      }
+      onRowsChange(updated);
     },
-    [rate]
+    [rate, rows, onRowsChange]
   );
 
   const handleToChange = useCallback(
     (id: string, value: string) => {
-      setRows((prev) => {
-        const updated = prev.map((r) => {
-          if (r.id !== id) return r;
-          const num = parseFloat(value);
-          return {
-            ...r,
-            toAmount: value,
-            fromAmount: value && !isNaN(num) ? (num * reverseRate).toFixed(2) : '',
-          };
-        });
-        const last = updated[updated.length - 1];
-        if (last.fromAmount || last.toAmount) {
-          updated.push(newRow());
-        }
-        return updated;
+      const updated = rows.map((r) => {
+        if (r.id !== id) return r;
+        const num = parseFloat(value);
+        return {
+          ...r,
+          toAmount: value,
+          fromAmount: value && !isNaN(num) ? (num * reverseRate).toFixed(2) : '',
+        };
       });
+      const last = updated[updated.length - 1];
+      if (last.fromAmount || last.toAmount) {
+        updated.push(newRow());
+      }
+      onRowsChange(updated);
     },
-    [reverseRate]
+    [reverseRate, rows, onRowsChange]
   );
 
   const removeRow = (id: string) => {
-    setRows((prev) => {
-      if (prev.length <= 1) return prev;
-      return prev.filter((r) => r.id !== id);
-    });
+    if (rows.length <= 1) return;
+    onRowsChange(rows.filter((r) => r.id !== id));
   };
 
   return (
