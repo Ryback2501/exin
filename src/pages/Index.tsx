@@ -45,7 +45,7 @@ const Index = () => {
 
   const handleSwapColumns = () => {
     setTabs((prev) =>
-      prev.map((t) => (t.id === activeTabId ? { ...t, from: t.to, to: t.from } : t))
+    prev.map((t) => t.id === activeTabId ? { ...t, from: t.to, to: t.from } : t)
     );
   };
 
@@ -54,32 +54,32 @@ const Index = () => {
       {/* Header */}
       <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-card/50">
         <TrendingUp size={20} className="text-primary" />
-        <h1 className="text-sm font-semibold text-foreground tracking-tight">Currency Converter</h1>
+        <h1 className="text-sm font-semibold text-foreground tracking-tight">Exin
+
+        </h1>
       </header>
 
       {/* Tab Navigator */}
-      <TabNavigator
-        tabs={tabs}
-        activeTabId={activeTabId}
-        onSelectTab={setActiveTabId}
-        onCloseTab={handleCloseTab}
-        onAddTab={handleAddTab}
-      />
+      <TabNavigator tabs={tabs} activeTabId={activeTabId}
+      onSelectTab={setActiveTabId}
+      onCloseTab={handleCloseTab}
+      onAddTab={handleAddTab} />
+
 
       {/* Content */}
-      {activeTab && (
-        <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-6">
+      {activeTab &&
+      <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-6">
           <ExchangeChart pair={activeTab} />
           <ConversionTable pair={activeTab} onSwap={handleSwapColumns} />
         </div>
-      )}
+      }
 
       {/* Selector Modal */}
-      {showSelector && (
-        <CurrencyPairSelector onAccept={handleAcceptPair} onCancel={() => setShowSelector(false)} />
-      )}
-    </div>
-  );
+      {showSelector &&
+      <CurrencyPairSelector onAccept={handleAcceptPair} onCancel={() => setShowSelector(false)} />
+      }
+    </div>);
+
 };
 
 export default Index;
