@@ -1,0 +1,143 @@
+import { useState, useCallback } from 'react';
+import { CurrencyPair, ConversionRow, getExchangeRate } from '@/data/currencies';
+import { ArrowLeftRight, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface ConversionTableProps {
+  pair: CurrencyPair;
+  onSwap: () => void;
+}
+
+let rowIdCounter = 0;
+function newRow(): ConversionRow {
+  return { id: `row-${++rowIdCounter}`, fromAmount: '', toAmount: '' };
+}
+
+export function ConversionTable({ pair, onSwap }: ConversionTableProps) {
+  const [rows, setRows] = useState<ConversionRow[]>([newRow()]);
+
+  const rate = getExchangeRate(pair.from.code, pair.to.code);
+  const reverseRate = getExchangeRate(pair.to.code, pair.from.code);
+
+  const handleFromChange = useCallback(
+    (id: string, value: string) => {
+      setRows((prev) => {
+        const updated = prev.map((r) => {
+          if (r.id !== id) return r;
+          const num = parseFloat(value);
+          return {
+            ...r,
+            fromAmount: value,
+            toAmount: value && !isNaN(num) ? (num * rate).toFixed(2) : '',
+          };
+        });
+        // Add empty row if last row now has content
+        const last = updated[updated.length - 1];
+        if (last.fromAmount || last.toAmount) {
+          updated.push(newRow());
+        }
+        return updated;
+      });
+    },
+    [rate]
+  );
+
+  const handleToChange = useCallback(
+    (id: string, value: string) => {
+      setRows((prev) => {
+        const updated = prev.map((r) => {
+          if (r.id !== id) return r;
+          const num = parseFloat(value);
+          return {
+            ...r,
+            toAmount: value,
+            fromAmount: value && !isNaN(num) ? (num * reverseRate).toFixed(2) : '',
+          };
+        });
+        const last = updated[updated.length - 1];
+        if (last.fromAmount || last.toAmount) {
+          updated.push(newRow());
+        }
+        return updated;
+      });
+    },
+    [reverseRate]
+  );
+
+  const removeRow = (id: string) => {
+    setRows((prev) => {
+      if (prev.length <= 1) return prev;
+      return prev.filter((r) => r.id !== id);
+    });
+  };
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-medium text-muted-foreground">Conversions</h3>
+        <button
+          onClick={onSwap}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors px-2 py-1 rounded hover:bg-muted"
+        >
+          <ArrowLeftRight size={14} />
+          Swap columns
+        </button>
+      </div>
+      <div className="border border-border rounded-lg overflow-hidden">
+        {/* Header */}
+        <div className="grid grid-cols-[1fr_1fr_40px] bg-muted/50">
+          <div className="px-4 py-2.5 text-sm font-medium text-foreground flex items-center gap-2 border-r border-border">
+            <span className="text-lg">{pair.from.flag}</span>
+            <span>{pair.from.code}</span>
+            <span className="text-muted-foreground">({pair.from.symbol})</span>
+          </div>
+          <div className="px-4 py-2.5 text-sm font-medium text-foreground flex items-center gap-2">
+            <span className="text-lg">{pair.to.flag}</span>
+            <span>{pair.to.code}</span>
+            <span className="text-muted-foreground">({pair.to.symbol})</span>
+          </div>
+          <div />
+        </div>
+        {/* Rows */}
+        {rows.map((row, idx) => {
+          const isLast = idx === rows.length - 1;
+          return (
+            <div key={row.id} className="grid grid-cols-[1fr_1fr_40px] border-t border-border">
+              <div className="border-r border-border">
+                <input
+                  type="number"
+                  value={row.fromAmount}
+                  onChange={(e) => handleFromChange(row.id, e.target.value)}
+                  placeholder="0.00"
+                  className="w-full px-4 py-2.5 bg-transparent text-sm font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:bg-primary/5"
+                />
+              </div>
+              <div>
+                <input
+                  type="number"
+                  value={row.toAmount}
+                  onChange={(e) => handleToChange(row.id, e.target.value)}
+                  placeholder="0.00"
+                  className="w-full px-4 py-2.5 bg-transparent text-sm font-mono text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:bg-primary/5"
+                />
+              </div>
+              <div className="flex items-center justify-center">
+                {!isLast && (
+                  <button
+                    onClick={() => removeRow(row.id)}
+                    className="p-1 text-muted-foreground hover:text-destructive transition-colors rounded hover:bg-destructive/10"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        Rate: 1 {pair.from.code} = {rate.toFixed(6)} {pair.to.code}
+      </p>
+    </div>
+  );
+}
