@@ -87,14 +87,12 @@ export function ConversionTable({ pair, onSwap }: ConversionTableProps) {
         {/* Header */}
         <div className="grid grid-cols-[1fr_1fr_40px] bg-muted/50">
           <div className="px-4 py-2.5 text-sm font-medium text-foreground flex items-center gap-2 border-r border-border">
-            <span className="text-lg">{pair.from.flag}</span>
-            <span>{pair.from.code}</span>
-            <span className="text-muted-foreground">({pair.from.symbol})</span>
+            <span className="text-2xl leading-none">{pair.from.flag}</span>
+            <span className="text-muted-foreground">{pair.from.symbol}</span>
           </div>
           <div className="px-4 py-2.5 text-sm font-medium text-foreground flex items-center gap-2">
-            <span className="text-lg">{pair.to.flag}</span>
-            <span>{pair.to.code}</span>
-            <span className="text-muted-foreground">({pair.to.symbol})</span>
+            <span className="text-2xl leading-none">{pair.to.flag}</span>
+            <span className="text-muted-foreground">{pair.to.symbol}</span>
           </div>
           <div />
         </div>
