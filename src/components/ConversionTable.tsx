@@ -9,7 +9,7 @@ interface ConversionTableProps {
   onSwap: () => void;
 }
 
-let rowIdCounter = 0;
+let rowIdCounter = 1000;
 function newRow(): ConversionRow {
   return { id: `row-${++rowIdCounter}`, fromAmount: '', toAmount: '' };
 }
