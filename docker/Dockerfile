@@ -18,7 +18,7 @@ RUN wget -O /tmp/repo.tar.gz "$REPO_ARCHIVE_URL" \
   && cp -R /tmp/repo/. /src \
   && rm -rf /tmp/repo /tmp/repo.tar.gz
 
-RUN npm ci
+RUN npm install --no-audit --no-fund
 RUN npm run build
 
 FROM nginx:1.27-alpine AS runtime
