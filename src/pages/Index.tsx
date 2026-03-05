@@ -5,6 +5,7 @@ import { CurrencyPairSelector } from '@/components/CurrencyPairSelector';
 import { ExchangeChart } from '@/components/ExchangeChart';
 import { ConversionTable } from '@/components/ConversionTable';
 import { TrendingUp } from 'lucide-react';
+import { useExchangeRate } from '@/hooks/useExchangeRate';
 
 let pairIdCounter = 0;
 function createPair(from: Currency, to: Currency): CurrencyPair {
@@ -27,6 +28,8 @@ const Index = () => {
   });
 
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
+
+  const { data: rate, isLoading } = useExchangeRate(activeTab.from.code, activeTab.to.code);
 
   const handleAddTab = () => setShowSelector(true);
 
@@ -59,7 +62,7 @@ const Index = () => {
 
   const handleSwapColumns = () => {
     setTabs((prev) =>
-    prev.map((t) => t.id === activeTabId ? { ...t, from: t.to, to: t.from } : t)
+      prev.map((t) => t.id === activeTabId ? { ...t, from: t.to, to: t.from } : t)
     );
   };
 
@@ -68,37 +71,35 @@ const Index = () => {
       {/* Header */}
       <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-card/50 shrink-0">
         <TrendingUp size={20} className="text-primary" />
-        <h1 className="text-sm font-semibold text-foreground tracking-tight">Exin
-
-        </h1>
+        <h1 className="text-sm font-semibold text-foreground tracking-tight">Exin</h1>
       </header>
 
       {/* Tab Navigator */}
       <TabNavigator tabs={tabs} activeTabId={activeTabId}
-      onSelectTab={setActiveTabId}
-      onCloseTab={handleCloseTab}
-      onAddTab={handleAddTab} />
-
+        onSelectTab={setActiveTabId}
+        onCloseTab={handleCloseTab}
+        onAddTab={handleAddTab} />
 
       {/* Content */}
       {activeTab &&
-      <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
-          <ExchangeChart pair={activeTab} />
+        <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
+          <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} />
           <ConversionTable
             pair={activeTab}
             rows={tabRows[activeTab.id] || [newRow()]}
             onRowsChange={(rows) => setTabRows((prev) => ({ ...prev, [activeTab.id]: rows }))}
             onSwap={handleSwapColumns}
+            rate={rate}
           />
         </div>
       }
 
       {/* Selector Modal */}
       {showSelector &&
-      <CurrencyPairSelector onAccept={handleAcceptPair} onCancel={() => setShowSelector(false)} />
+        <CurrencyPairSelector onAccept={handleAcceptPair} onCancel={() => setShowSelector(false)} />
       }
-    </div>);
-
+    </div>
+  );
 };
 
 export default Index;

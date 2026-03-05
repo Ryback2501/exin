@@ -1,13 +1,52 @@
 import { useMemo } from 'react';
-import { generateChartData, CurrencyPair } from '@/data/currencies';
+import { CurrencyPair } from '@/data/currencies';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface ExchangeChartProps {
   pair: CurrencyPair;
+  rate: number | undefined;
+  isLoading: boolean;
 }
 
-export function ExchangeChart({ pair }: ExchangeChartProps) {
-  const data = useMemo(() => generateChartData(pair.from.code, pair.to.code, 30), [pair.from.code, pair.to.code]);
+function generateChartDataFromRate(rate: number, days: number = 30) {
+  const data = [];
+  const now = new Date();
+  for (let i = days; i >= 0; i--) {
+    const date = new Date(now);
+    date.setDate(date.getDate() - i);
+    const variation = (Math.random() - 0.5) * 0.04 * rate;
+    data.push({
+      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      rate: +(rate + variation).toFixed(6),
+    });
+  }
+  // Ensure last point is the real rate
+  data[data.length - 1].rate = +rate.toFixed(6);
+  return data;
+}
+
+export function ExchangeChart({ pair, rate, isLoading }: ExchangeChartProps) {
+  const data = useMemo(
+    () => (rate ? generateChartDataFromRate(rate, 30) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rate, pair.from.code, pair.to.code]
+  );
+
+  if (isLoading || !rate) {
+    return (
+      <div className="w-full">
+        <div className="flex items-baseline gap-3 mb-3">
+          <span className="text-lg font-semibold text-foreground">
+            {pair.from.code} – {pair.to.code}
+          </span>
+          <span className="text-xs text-muted-foreground">Cargando…</span>
+        </div>
+        <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+          Obteniendo tipo de cambio…
+        </div>
+      </div>
+    );
+  }
 
   const minRate = Math.min(...data.map((d) => d.rate));
   const maxRate = Math.max(...data.map((d) => d.rate));
@@ -16,11 +55,11 @@ export function ExchangeChart({ pair }: ExchangeChartProps) {
   return (
     <div className="w-full">
       <div className="flex items-baseline gap-3 mb-3">
-        <span className="text-2xl font-mono font-bold text-foreground">
-          {data[data.length - 1].rate.toFixed(4)}
+        <span className="text-lg font-semibold text-foreground">
+          {pair.from.code} – {pair.to.code}
         </span>
         <span className="text-xs text-muted-foreground">
-          1 {pair.from.code} = {data[data.length - 1].rate.toFixed(4)} {pair.to.code}
+          1 {pair.from.code} = {rate.toFixed(4)} {pair.to.code}
         </span>
         <span className={`text-xs font-medium ${isUp ? 'text-chart-up' : 'text-chart-down'}`}>
           {isUp ? '▲' : '▼'} {Math.abs(((data[data.length - 1].rate - data[0].rate) / data[0].rate) * 100).toFixed(2)}%
