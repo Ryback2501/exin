@@ -64,9 +64,9 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
       {/* Header */}
-      <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-card/50">
+      <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-card/50 shrink-0">
         <TrendingUp size={20} className="text-primary" />
         <h1 className="text-sm font-semibold text-foreground tracking-tight">Exin
 
@@ -82,7 +82,7 @@ const Index = () => {
 
       {/* Content */}
       {activeTab &&
-      <div className="flex-1 p-6 max-w-4xl mx-auto w-full space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
           <ExchangeChart pair={activeTab} />
           <ConversionTable
             pair={activeTab}
