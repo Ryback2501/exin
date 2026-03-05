@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { CurrencyPair, ConversionRow, getExchangeRate } from '@/data/currencies';
+import { CurrencyPair, ConversionRow } from '@/data/currencies';
 import { ArrowLeftRight, Trash2 } from 'lucide-react';
 
 interface ConversionTableProps {
@@ -7,6 +7,7 @@ interface ConversionTableProps {
   rows: ConversionRow[];
   onRowsChange: (rows: ConversionRow[]) => void;
   onSwap: () => void;
+  rate: number | undefined;
 }
 
 let rowIdCounter = 1000;
@@ -14,10 +15,9 @@ function newRow(): ConversionRow {
   return { id: `row-${++rowIdCounter}`, fromAmount: '', toAmount: '' };
 }
 
-export function ConversionTable({ pair, rows, onRowsChange, onSwap }: ConversionTableProps) {
-
-  const rate = getExchangeRate(pair.from.code, pair.to.code);
-  const reverseRate = getExchangeRate(pair.to.code, pair.from.code);
+export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: ConversionTableProps) {
+  const effectiveRate = rate ?? 1;
+  const reverseRate = effectiveRate ? 1 / effectiveRate : 1;
 
   const handleFromChange = useCallback(
     (id: string, value: string) => {
@@ -27,7 +27,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap }: Conversion
         return {
           ...r,
           fromAmount: value,
-          toAmount: value && !isNaN(num) ? (num * rate).toFixed(2) : '',
+          toAmount: value && !isNaN(num) ? (num * effectiveRate).toFixed(2) : '',
         };
       });
       const last = updated[updated.length - 1];
@@ -36,7 +36,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap }: Conversion
       }
       onRowsChange(updated);
     },
-    [rate, rows, onRowsChange]
+    [effectiveRate, rows, onRowsChange]
   );
 
   const handleToChange = useCallback(
@@ -127,7 +127,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap }: Conversion
         })}
       </div>
       <p className="text-xs text-muted-foreground mt-2">
-        Rate: 1 {pair.from.code} = {rate.toFixed(6)} {pair.to.code}
+        Rate: 1 {pair.from.code} = {rate ? rate.toFixed(6) : '…'} {pair.to.code}
       </p>
     </div>
   );
