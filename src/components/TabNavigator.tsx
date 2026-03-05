@@ -12,7 +12,7 @@ interface TabNavigatorProps {
 
 export function TabNavigator({ tabs, activeTabId, onSelectTab, onCloseTab, onAddTab }: TabNavigatorProps) {
   return (
-    <div className="flex items-stretch border-b border-border bg-muted/30 overflow-x-auto">
+    <div className="flex items-stretch border-b border-border bg-muted/30 overflow-x-auto shrink-0">
       {tabs.map((tab) => (
         <div
           key={tab.id}
