@@ -1,5 +1,4 @@
 import { CurrencyPair } from '@/data/currencies';
-import { CurrencyPairDisplay } from './CurrencyPairDisplay';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,15 +17,19 @@ export function TabNavigator({ tabs, activeTabId, onSelectTab, onCloseTab, onAdd
         <div
           key={tab.id}
           className={cn(
-            'group flex items-center gap-2 px-4 py-2.5 cursor-pointer border-r border-border min-w-0 shrink-0',
+            'group flex items-center gap-1.5 px-3 py-2.5 cursor-pointer border-r border-border min-w-0 shrink-0 select-none touch-manipulation',
             activeTabId === tab.id ? 'tab-active' : 'tab-inactive'
           )}
-          onClick={() => onSelectTab(tab.id)}
+          onPointerDown={() => onSelectTab(tab.id)}
         >
-          <CurrencyPairDisplay pair={tab} size="sm" />
+          <span className="text-base leading-none">{tab.from.flag}</span>
+          <span className="text-xs font-semibold">{tab.from.symbol}</span>
+          <span className="text-muted-foreground text-xs">/</span>
+          <span className="text-xs font-semibold">{tab.to.symbol}</span>
+          <span className="text-base leading-none">{tab.to.flag}</span>
           {tabs.length > 1 && (
             <button
-              onClick={(e) => {
+              onPointerDown={(e) => {
                 e.stopPropagation();
                 onCloseTab(tab.id);
               }}
