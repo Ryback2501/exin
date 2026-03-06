@@ -1,6 +1,15 @@
+import { useState } from 'react';
 import { CurrencyPair } from '@/data/currencies';
 import { HistoricalPoint } from '@/services/exchangeRateApi';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+
+const PERIODS = [
+  { label: '1W', days: 7 },
+  { label: '1M', days: 30 },
+  { label: '1Y', days: 365 },
+  { label: '5Y', days: 1825 },
+  { label: 'All', days: 0 },
+] as const;
 
 interface ExchangeChartProps {
   pair: CurrencyPair;
@@ -8,10 +17,17 @@ interface ExchangeChartProps {
   isLoading: boolean;
   historicalData: HistoricalPoint[];
   isLoadingHistory: boolean;
+  onPeriodChange?: (days: number) => void;
 }
 
-export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoadingHistory }: ExchangeChartProps) {
+export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoadingHistory, onPeriodChange }: ExchangeChartProps) {
+  const [activePeriod, setActivePeriod] = useState(30);
   const data = historicalData ?? [];
+
+  const handlePeriod = (days: number) => {
+    setActivePeriod(days);
+    onPeriodChange?.(days);
+  };
 
   if (isLoading || isLoadingHistory || !rate || data.length === 0) {
     return (
@@ -24,6 +40,14 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
         </div>
         <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
           Obteniendo tipo de cambio…
+        </div>
+        <div className="flex gap-1 mt-2">
+          {PERIODS.map((p) => (
+            <button key={p.label} onClick={() => handlePeriod(p.days)}
+              className={`px-3 py-1 text-xs rounded-md transition-colors ${activePeriod === p.days ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
+              {p.label}
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -75,6 +99,14 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
           />
         </AreaChart>
       </ResponsiveContainer>
+      <div className="flex gap-1 mt-2">
+        {PERIODS.map((p) => (
+          <button key={p.label} onClick={() => handlePeriod(p.days)}
+            className={`px-3 py-1 text-xs rounded-md transition-colors ${activePeriod === p.days ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
+            {p.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
