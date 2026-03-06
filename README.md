@@ -25,8 +25,8 @@ Use the live app here: [https://exin.lovable.app](https://exin.lovable.app)
 - Multi-pair workflow with tab-based navigation.
 - Multiple amount rows per pair (auto-add rows while typing).
 - Two-way conversion editing (`from -> to` and `to -> from`).
-- Live exchange rate fetching from ExchangeRate-API.
-- Lightweight historical-style chart visualization for each pair.
+- Live exchange rate fetching from `exchangerate.host`.
+- Historical chart based on API timeframe data with selectable periods (`1W`, `1M`, `1Y`).
 - Currency search and pair selection modal.
 - PWA setup with service worker registration.
 
@@ -49,12 +49,14 @@ Based on the source code, Exin is built with:
 
 ## Getting Started
 
-### Prerequisites
+### Local Development
+
+#### Prerequisites
 
 - Node.js 18+ (recommended)
 - npm (or Bun)
 
-### Installation
+#### Installation
 
 ```bash
 npm install
@@ -66,46 +68,78 @@ Or with Bun:
 bun install
 ```
 
-### Run in Development
+#### Run in Development
 
 ```bash
 npm run dev
 ```
 
-### Build for Production
+#### Build for Production
 
 ```bash
 npm run build
 ```
 
-### Preview Production Build
+#### Preview Production Build
 
 ```bash
 npm run preview
 ```
 
-### Lint and Test
+#### Lint and Test
 
 ```bash
 npm run lint
 npm run test
 ```
 
+### Docker Deployment
+
+This repository includes Docker deployment files in the `docker/` folder:
+
+Note: `docker/deploy-exin.bat` is intended for a remote server running Alpine Linux with Docker already installed.
+
+- `docker/Dockerfile`: multi-stage image that:
+  - downloads the project source from GitHub,
+  - installs dependencies and builds the app,
+  - serves the built app with Nginx (SPA fallback included).
+- `docker/deploy-exin.bat`: Windows batch script that:
+  - asks for SSH host and user,
+  - connects to your Linux VM over SSH,
+  - escalates with `su` to run all deployment steps as superuser,
+  - downloads only the Dockerfile,
+  - builds/updates the image,
+  - recreates the container,
+  - opens the app URL in your browser.
+
+Run it from the project root:
+
+```bat
+docker\deploy-exin.bat
+```
+
+Optional: pass host and user directly.
+
+```bat
+docker\deploy-exin.bat <SSH host IP> <SSH user>
+```
+
 ## Project Structure
 
 ```text
+docker/             Dockerfile and Windows deployment script
 src/
   components/      UI and feature components (tabs, selector, table, chart)
   hooks/           Data/query hooks
   pages/           Route pages
-  services/        API integration (ExchangeRate-API)
+  services/        API integration (`exchangerate.host`)
   data/            Currency catalog and related types
 ```
 
 ## Notes
 
-- Exchange rates are requested from `https://v6.exchangerate-api.com`.
-- The chart is a generated trend visualization anchored to the latest fetched rate.
+- Exchange rates are requested from `https://api.exchangerate.host`.
+- Historical chart data is requested via the API timeframe endpoint and filtered by the selected period.
 - The app currently focuses on a compact, fast experimentation flow.
 
 ## Contributing

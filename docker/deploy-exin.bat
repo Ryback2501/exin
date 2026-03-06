@@ -66,7 +66,22 @@ echo Connecting via SSH to %SshUser%@%SshHost%...
 echo Repo: %RepoGitUrl% ^(branch: %RepoBranch%^)
 echo Dockerfile: %DockerfileRawUrl%
 echo Step 1: enter SSH password for %SshUser%@%SshHost%.
-ssh -tt -o PubkeyAuthentication=no "%SshUser%@%SshHost%" "echo Welcome to the server; echo Introduce super user password.; su -c 'set -eu; echo Password introduced successfully; echo [1/4] Downloading Dockerfile...; mkdir -p %RemoteWorkDir%; cd %RemoteWorkDir%; wget -O Dockerfile %DockerfileRawUrl%; echo [2/4] Building Docker image...; docker build --pull --build-arg REPO_ARCHIVE_URL=%RepoArchiveUrl% -t %ImageName% -f Dockerfile .; echo [3/4] Recreating container...; docker rm -f %ContainerName% 2>/dev/null || true; docker run -d --name %ContainerName% --restart unless-stopped -p %HostPort%:80 %ImageName%; echo [4/4] Container status:; docker ps --filter name=%ContainerName%'"
+ssh -tt -o PubkeyAuthentication=no "%SshUser%@%SshHost%" ^
+  "echo Welcome to the server; ^
+  echo Introduce super user password.; ^
+  su -c 'set -eu; ^
+  echo Password introduced successfully; ^
+  echo [1/4] Downloading Dockerfile...; ^
+  mkdir -p %RemoteWorkDir%; ^
+  cd %RemoteWorkDir%; ^
+  wget -O Dockerfile %DockerfileRawUrl%; ^
+  echo [2/4] Building Docker image...; ^
+  docker build --pull --build-arg REPO_ARCHIVE_URL=%RepoArchiveUrl% -t %ImageName% -f Dockerfile .; ^
+  echo [3/4] Recreating container...; ^
+  docker rm -f %ContainerName% 2>/dev/null || true; ^
+  docker run -d --name %ContainerName% --restart unless-stopped -p %HostPort%:80 %ImageName%; ^
+  echo [4/4] Container status:; ^
+  docker ps --filter name=%ContainerName%'"
 set "ExitCode=%ERRORLEVEL%"
 
 if not "%ExitCode%"=="0" (
