@@ -1,5 +1,5 @@
-const API_KEY = '524107f677859f5564896093';
-const BASE_URL = `https://v6.exchangerate-api.com/v6/${API_KEY}`;
+const API_KEY = '88c4c0f5268508a68c485f0b7c0bc0b8';
+const BASE_URL = 'https://api.exchangerate.host';
 
 export interface PairResponse {
   result: string;
@@ -8,11 +8,12 @@ export interface PairResponse {
 }
 
 export async function fetchPairRate(from: string, to: string): Promise<number> {
-  const res = await fetch(`${BASE_URL}/pair/${from}/${to}`);
-  if (!res.ok) throw new Error(`ExchangeRate-API error: ${res.status}`);
-  const data: PairResponse = await res.json();
-  if (data.result !== 'success') throw new Error('ExchangeRate-API request failed');
-  return data.conversion_rate;
+  const res = await fetch(`${BASE_URL}/live?access_key=${API_KEY}&source=${from}&currencies=${to}`);
+  if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+  const data = await res.json();
+  if (!data.success) throw new Error('exchangerate.host request failed');
+  const key = `${from}${to}`;
+  return data.quotes[key];
 }
 
 export interface LatestRatesResponse {
@@ -21,11 +22,15 @@ export interface LatestRatesResponse {
 }
 
 export async function fetchLatestRates(base: string): Promise<Record<string, number>> {
-  const res = await fetch(`${BASE_URL}/latest/${base}`);
-  if (!res.ok) throw new Error(`ExchangeRate-API error: ${res.status}`);
-  const data: LatestRatesResponse = await res.json();
-  if (data.result !== 'success') throw new Error('ExchangeRate-API request failed');
-  return data.conversion_rates;
+  const res = await fetch(`${BASE_URL}/live?access_key=${API_KEY}&source=${base}`);
+  if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+  const data = await res.json();
+  if (!data.success) throw new Error('exchangerate.host request failed');
+  const rates: Record<string, number> = {};
+  for (const [key, value] of Object.entries(data.quotes)) {
+    rates[key.slice(base.length)] = value as number;
+  }
+  return rates;
 }
 
 export interface HistoricalPoint {
@@ -43,15 +48,17 @@ export async function fetchHistoricalRates(
   start.setDate(start.getDate() - days);
 
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  const url = `https://api.frankfurter.app/${fmt(start)}..${fmt(end)}?from=${from}&to=${to}`;
+  const url = `${BASE_URL}/timeframe?access_key=${API_KEY}&start_date=${fmt(start)}&end_date=${fmt(end)}&source=${from}&currencies=${to}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Frankfurter API error: ${res.status}`);
-  const data: { rates: Record<string, Record<string, number>> } = await res.json();
+  if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+  const data = await res.json();
+  if (!data.success) throw new Error('exchangerate.host historical request failed');
 
-  return Object.entries(data.rates)
+  const key = `${from}${to}`;
+  return Object.entries(data.quotes as Record<string, Record<string, number>>)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([dateStr, rates]) => ({
       date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      rate: +rates[to].toFixed(6),
+      rate: +(rates[key]).toFixed(6),
     }));
 }
