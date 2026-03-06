@@ -27,3 +27,31 @@ export async function fetchLatestRates(base: string): Promise<Record<string, num
   if (data.result !== 'success') throw new Error('ExchangeRate-API request failed');
   return data.conversion_rates;
 }
+
+export interface HistoricalPoint {
+  date: string;
+  rate: number;
+}
+
+export async function fetchHistoricalRates(
+  from: string,
+  to: string,
+  days: number = 30
+): Promise<HistoricalPoint[]> {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - days);
+
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const url = `https://api.frankfurter.app/${fmt(start)}..${fmt(end)}?from=${from}&to=${to}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Frankfurter API error: ${res.status}`);
+  const data: { rates: Record<string, Record<string, number>> } = await res.json();
+
+  return Object.entries(data.rates)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dateStr, rates]) => ({
+      date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      rate: +rates[to].toFixed(6),
+    }));
+}

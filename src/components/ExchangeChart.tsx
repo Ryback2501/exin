@@ -1,38 +1,19 @@
-import { useMemo } from 'react';
 import { CurrencyPair } from '@/data/currencies';
+import { HistoricalPoint } from '@/services/exchangeRateApi';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface ExchangeChartProps {
   pair: CurrencyPair;
   rate: number | undefined;
   isLoading: boolean;
+  historicalData: HistoricalPoint[];
+  isLoadingHistory: boolean;
 }
 
-function generateChartDataFromRate(rate: number, days: number = 30) {
-  const data = [];
-  const now = new Date();
-  for (let i = days; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-    const variation = (Math.random() - 0.5) * 0.04 * rate;
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      rate: +(rate + variation).toFixed(6),
-    });
-  }
-  // Ensure last point is the real rate
-  data[data.length - 1].rate = +rate.toFixed(6);
-  return data;
-}
+export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoadingHistory }: ExchangeChartProps) {
+  const data = historicalData;
 
-export function ExchangeChart({ pair, rate, isLoading }: ExchangeChartProps) {
-  const data = useMemo(
-    () => (rate ? generateChartDataFromRate(rate, 30) : []),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rate, pair.from.code, pair.to.code]
-  );
-
-  if (isLoading || !rate) {
+  if (isLoading || isLoadingHistory || !rate || data.length === 0) {
     return (
       <div className="w-full">
         <div className="flex items-baseline gap-3 mb-3">
