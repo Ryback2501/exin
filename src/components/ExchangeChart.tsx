@@ -11,7 +11,7 @@ interface ExchangeChartProps {
 }
 
 export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoadingHistory }: ExchangeChartProps) {
-  const data = historicalData;
+  const data = historicalData ?? [];
 
   if (isLoading || isLoadingHistory || !rate || data.length === 0) {
     return (
