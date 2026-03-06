@@ -26,11 +26,12 @@ const Index = () => {
   const [tabRows, setTabRows] = useState<Record<string, ConversionRow[]>>({
     [defaultPair.id]: [newRow()],
   });
+  const [historyDays, setHistoryDays] = useState(30);
 
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
 
   const { data: rate, isLoading } = useExchangeRate(activeTab.from.code, activeTab.to.code);
-  const { data: historicalData, isLoading: isLoadingHistory } = useHistoricalRates(activeTab.from.code, activeTab.to.code);
+  const { data: historicalData, isLoading: isLoadingHistory } = useHistoricalRates(activeTab.from.code, activeTab.to.code, historyDays);
 
   const handleAddTab = () => setShowSelector(true);
 
@@ -84,7 +85,7 @@ const Index = () => {
       {/* Content */}
       {activeTab &&
         <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
-          <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} historicalData={historicalData || []} isLoadingHistory={isLoadingHistory} />
+          <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} historicalData={historicalData || []} isLoadingHistory={isLoadingHistory} onPeriodChange={setHistoryDays} />
           <ConversionTable
             pair={activeTab}
             rows={tabRows[activeTab.id] || [newRow()]}
