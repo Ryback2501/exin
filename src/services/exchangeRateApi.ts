@@ -45,7 +45,11 @@ export async function fetchHistoricalRates(
 ): Promise<HistoricalPoint[]> {
   const end = new Date();
   const start = new Date();
-  start.setDate(start.getDate() - days);
+  if (days > 0) {
+    start.setDate(start.getDate() - days);
+  } else {
+    start.setFullYear(2000, 0, 1); // "All time"
+  }
 
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
   const url = `${BASE_URL}/timeframe?access_key=${API_KEY}&start_date=${fmt(start)}&end_date=${fmt(end)}&source=${from}&currencies=${to}`;
