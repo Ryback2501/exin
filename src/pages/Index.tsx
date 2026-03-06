@@ -5,7 +5,7 @@ import { CurrencyPairSelector } from '@/components/CurrencyPairSelector';
 import { ExchangeChart } from '@/components/ExchangeChart';
 import { ConversionTable } from '@/components/ConversionTable';
 import { TrendingUp } from 'lucide-react';
-import { useExchangeRate } from '@/hooks/useExchangeRate';
+import { useExchangeRate, useHistoricalRates } from '@/hooks/useExchangeRate';
 
 let pairIdCounter = 0;
 function createPair(from: Currency, to: Currency): CurrencyPair {
@@ -30,6 +30,7 @@ const Index = () => {
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
 
   const { data: rate, isLoading } = useExchangeRate(activeTab.from.code, activeTab.to.code);
+  const { data: historicalData, isLoading: isLoadingHistory } = useHistoricalRates(activeTab.from.code, activeTab.to.code);
 
   const handleAddTab = () => setShowSelector(true);
 
@@ -83,7 +84,7 @@ const Index = () => {
       {/* Content */}
       {activeTab &&
         <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
-          <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} />
+          <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} historicalData={historicalData || []} isLoadingHistory={isLoadingHistory} />
           <ConversionTable
             pair={activeTab}
             rows={tabRows[activeTab.id] || [newRow()]}
