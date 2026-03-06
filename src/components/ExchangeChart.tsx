@@ -7,8 +7,6 @@ const PERIODS = [
   { label: '1W', days: 7 },
   { label: '1M', days: 30 },
   { label: '1Y', days: 365 },
-  { label: '5Y', days: 1825 },
-  { label: 'All', days: 0 },
 ] as const;
 
 interface ExchangeChartProps {
@@ -36,10 +34,10 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
           <span className="text-lg font-semibold text-foreground">
             {pair.from.code} – {pair.to.code}
           </span>
-          <span className="text-xs text-muted-foreground">Cargando…</span>
+          <span className="text-xs text-muted-foreground">Loading…</span>
         </div>
         <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
-          Obteniendo tipo de cambio…
+          Obtaining exchange rate…
         </div>
         <div className="flex gap-1 mt-2">
           {PERIODS.map((p) => (
