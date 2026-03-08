@@ -97,6 +97,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
               <div className="border-r border-border">
                 <input
                   type="number"
+                  inputMode="decimal"
                   value={row.fromAmount}
                   onChange={(e) => handleFromChange(row.id, e.target.value)}
                   placeholder="0.00"
@@ -106,6 +107,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
               <div>
                 <input
                   type="number"
+                  inputMode="decimal"
                   value={row.toAmount}
                   onChange={(e) => handleToChange(row.id, e.target.value)}
                   placeholder="0.00"
