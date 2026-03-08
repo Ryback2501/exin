@@ -1,36 +1,17 @@
-const API_KEY = '88c4c0f5268508a68c485f0b7c0bc0b8';
-const BASE_URL = 'https://api.exchangerate.host';
-
-export interface PairResponse {
-  result: string;
-  conversion_rate: number;
-  time_last_update_utc: string;
-}
+const BASE_URL = 'https://api.frankfurter.dev/v1';
 
 export async function fetchPairRate(from: string, to: string): Promise<number> {
-  const res = await fetch(`${BASE_URL}/live?access_key=${API_KEY}&source=${from}&currencies=${to}`);
-  if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+  const res = await fetch(`${BASE_URL}/latest?base=${from}&symbols=${to}`);
+  if (!res.ok) throw new Error(`Frankfurter error: ${res.status}`);
   const data = await res.json();
-  if (!data.success) throw new Error('exchangerate.host request failed');
-  const key = `${from}${to}`;
-  return data.quotes[key];
-}
-
-export interface LatestRatesResponse {
-  result: string;
-  conversion_rates: Record<string, number>;
+  return data.rates[to];
 }
 
 export async function fetchLatestRates(base: string): Promise<Record<string, number>> {
-  const res = await fetch(`${BASE_URL}/live?access_key=${API_KEY}&source=${base}`);
-  if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+  const res = await fetch(`${BASE_URL}/latest?base=${base}`);
+  if (!res.ok) throw new Error(`Frankfurter error: ${res.status}`);
   const data = await res.json();
-  if (!data.success) throw new Error('exchangerate.host request failed');
-  const rates: Record<string, number> = {};
-  for (const [key, value] of Object.entries(data.quotes)) {
-    rates[key.slice(base.length)] = value as number;
-  }
-  return rates;
+  return data.rates;
 }
 
 export interface HistoricalPoint {
@@ -48,21 +29,19 @@ export async function fetchHistoricalRates(
   if (days > 0) {
     start.setDate(start.getDate() - days);
   } else {
-    start.setFullYear(2000, 0, 1); // "All time"
+    start.setFullYear(1999, 0, 4); // Frankfurter data starts 1999-01-04
   }
 
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  const url = `${BASE_URL}/timeframe?access_key=${API_KEY}&start_date=${fmt(start)}&end_date=${fmt(end)}&source=${from}&currencies=${to}`;
+  const url = `${BASE_URL}/${fmt(start)}..${fmt(end)}?base=${from}&symbols=${to}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`exchangerate.host error: ${res.status}`);
+  if (!res.ok) throw new Error(`Frankfurter error: ${res.status}`);
   const data = await res.json();
-  if (!data.success) throw new Error('exchangerate.host historical request failed');
 
-  const key = `${from}${to}`;
-  return Object.entries(data.quotes as Record<string, Record<string, number>>)
+  return Object.entries(data.rates as Record<string, Record<string, number>>)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([dateStr, rates]) => ({
       date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      rate: +(rates[key]).toFixed(6),
+      rate: +(rates[to]).toFixed(6),
     }));
 }
