@@ -1,17 +1,30 @@
-const BASE_URL = 'https://api.frankfurter.dev/v1';
+const CDN_BASE = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api';
+const FALLBACK_BASE = 'https://currency-api.pages.dev';
+
+async function fetchWithFallback(date: string, endpoint: string): Promise<any> {
+  const cdnUrl = `${CDN_BASE}@${date}/v1/${endpoint}`;
+  try {
+    const res = await fetch(cdnUrl);
+    if (res.ok) return res.json();
+  } catch {}
+  // Fallback
+  const fallbackUrl = `https://${date}.${FALLBACK_BASE.replace('https://', '')}/v1/${endpoint}`;
+  const res = await fetch(fallbackUrl);
+  if (!res.ok) throw new Error(`Currency API error: ${res.status}`);
+  return res.json();
+}
 
 export async function fetchPairRate(from: string, to: string): Promise<number> {
-  const res = await fetch(`${BASE_URL}/latest?base=${from}&symbols=${to}`);
-  if (!res.ok) throw new Error(`Frankfurter error: ${res.status}`);
-  const data = await res.json();
-  return data.rates[to];
+  const f = from.toLowerCase();
+  const t = to.toLowerCase();
+  const data = await fetchWithFallback('latest', `currencies/${f}.min.json`);
+  return data[f][t];
 }
 
 export async function fetchLatestRates(base: string): Promise<Record<string, number>> {
-  const res = await fetch(`${BASE_URL}/latest?base=${base}`);
-  if (!res.ok) throw new Error(`Frankfurter error: ${res.status}`);
-  const data = await res.json();
-  return data.rates;
+  const b = base.toLowerCase();
+  const data = await fetchWithFallback('latest', `currencies/${b}.min.json`);
+  return data[b];
 }
 
 export interface HistoricalPoint {
@@ -24,24 +37,54 @@ export async function fetchHistoricalRates(
   to: string,
   days: number = 30
 ): Promise<HistoricalPoint[]> {
+  const f = from.toLowerCase();
+  const t = to.toLowerCase();
   const end = new Date();
   const start = new Date();
+
   if (days > 0) {
     start.setDate(start.getDate() - days);
   } else {
-    start.setFullYear(1999, 0, 4); // Frankfurter data starts 1999-01-04
+    // API data goes back ~2 years on jsdelivr
+    start.setFullYear(end.getFullYear() - 2);
   }
 
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  const url = `${BASE_URL}/${fmt(start)}..${fmt(end)}?base=${from}&symbols=${to}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Frankfurter error: ${res.status}`);
-  const data = await res.json();
+  // Sample dates to avoid too many requests
+  const dates: string[] = [];
+  const totalDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  const maxPoints = 60;
+  const step = Math.max(1, Math.floor(totalDays / maxPoints));
 
-  return Object.entries(data.rates as Record<string, Record<string, number>>)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([dateStr, rates]) => ({
-      date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      rate: +(rates[to]).toFixed(6),
-    }));
+  for (let i = 0; i <= totalDays; i += step) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    if (d <= end) {
+      dates.push(d.toISOString().slice(0, 10));
+    }
+  }
+  // Always include the last date
+  const lastDate = end.toISOString().slice(0, 10);
+  if (!dates.includes(lastDate)) dates.push(lastDate);
+
+  // Fetch all dates in parallel (batched to avoid overwhelming)
+  const batchSize = 10;
+  const results: HistoricalPoint[] = [];
+
+  for (let i = 0; i < dates.length; i += batchSize) {
+    const batch = dates.slice(i, i + batchSize);
+    const batchResults = await Promise.allSettled(
+      batch.map(async (dateStr) => {
+        const data = await fetchWithFallback(dateStr, `currencies/${f}.min.json`);
+        return {
+          date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          rate: +(data[f][t]).toFixed(6),
+        };
+      })
+    );
+    for (const r of batchResults) {
+      if (r.status === 'fulfilled') results.push(r.value);
+    }
+  }
+
+  return results;
 }
