@@ -107,6 +107,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
               <div>
                 <input
                   type="number"
+                  inputMode="decimal"
                   value={row.toAmount}
                   onChange={(e) => handleToChange(row.id, e.target.value)}
                   placeholder="0.00"

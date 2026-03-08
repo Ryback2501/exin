@@ -66,6 +66,14 @@ const Index = () => {
     setTabs((prev) =>
       prev.map((t) => t.id === activeTabId ? { ...t, from: t.to, to: t.from } : t)
     );
+    setTabRows((prev) => ({
+      ...prev,
+      [activeTabId]: (prev[activeTabId] || []).map((r) => ({
+        ...r,
+        fromAmount: r.toAmount,
+        toAmount: r.fromAmount,
+      })),
+    }));
   };
 
   return (
