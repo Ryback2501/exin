@@ -22,6 +22,7 @@ function newRow(): ConversionRow {
 const defaultPair = createPair(currencies[0], currencies[1]); // USD/EUR
 
 const Index = () => {
+  const { theme, toggleTheme } = useTheme();
   const [tabs, setTabs] = useState<CurrencyPair[]>([defaultPair]);
   const [activeTabId, setActiveTabId] = useState<string>(defaultPair.id);
   const [showSelector, setShowSelector] = useState(false);
