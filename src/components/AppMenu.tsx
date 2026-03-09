@@ -46,7 +46,8 @@ export function AppMenu({ theme, onToggleTheme }: AppMenuProps) {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>About Exin</DialogTitle>
-            <DialogDescription className="pt-3 space-y-3 text-sm leading-relaxed">
+          <DialogDescription asChild>
+              <div className="pt-3 space-y-3 text-sm leading-relaxed text-muted-foreground">
               <p>
                 Exin is a free, open-source currency exchange viewer built as an experiment in vibe coding with Lovable.
               </p>
@@ -74,7 +75,8 @@ export function AppMenu({ theme, onToggleTheme }: AppMenuProps) {
                 </a>
                 .
               </p>
-            </DialogDescription>
+            </div>
+          </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
