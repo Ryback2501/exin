@@ -4,8 +4,10 @@ import { TabNavigator } from '@/components/TabNavigator';
 import { CurrencyPairSelector } from '@/components/CurrencyPairSelector';
 import { ExchangeChart } from '@/components/ExchangeChart';
 import { ConversionTable } from '@/components/ConversionTable';
+import { AppMenu } from '@/components/AppMenu';
 import { TrendingUp } from 'lucide-react';
 import { useExchangeRate, useHistoricalRates } from '@/hooks/useExchangeRate';
+import { useTheme } from '@/hooks/useTheme';
 
 let pairIdCounter = 0;
 function createPair(from: Currency, to: Currency): CurrencyPair {
