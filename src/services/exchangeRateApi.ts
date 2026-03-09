@@ -32,6 +32,69 @@ export interface HistoricalPoint {
   rate: number;
 }
 
+function getLastDayOfWeek(d: Date): Date {
+  // Sunday as last day of the week
+  const day = d.getDay();
+  const diff = 7 - day;
+  const result = new Date(d);
+  result.setDate(result.getDate() + (day === 0 ? 0 : diff));
+  return result;
+}
+
+function getLastDayOfMonth(year: number, month: number): Date {
+  return new Date(year, month + 1, 0);
+}
+
+function buildDatesForPeriod(days: number, start: Date, end: Date): string[] {
+  const today = end.toISOString().slice(0, 10);
+  const dates: string[] = [];
+
+  // Always include the start date first
+  dates.push(start.toISOString().slice(0, 10));
+
+  if (days === 365) {
+    // 1Y: last day of each week (Sunday), ~52-53 points + today
+    const cursor = new Date(start);
+    let lastSunday = getLastDayOfWeek(cursor);
+    while (lastSunday <= end) {
+      const ds = lastSunday.toISOString().slice(0, 10);
+      if (!dates.includes(ds)) dates.push(ds);
+      lastSunday = new Date(lastSunday);
+      lastSunday.setDate(lastSunday.getDate() + 7);
+    }
+    if (!dates.includes(today)) dates.push(today);
+  } else if (days === 1825) {
+    // 5Y: last day of each month, ~60 points + today
+    let year = start.getFullYear();
+    let month = start.getMonth();
+    while (true) {
+      const eom = getLastDayOfMonth(year, month);
+      if (eom > end) break;
+      const ds = eom.toISOString().slice(0, 10);
+      if (!dates.includes(ds)) dates.push(ds);
+      month++;
+      if (month > 11) { month = 0; year++; }
+    }
+    if (!dates.includes(today)) dates.push(today);
+  } else {
+    // 1W, 1M: daily points
+    const totalDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const maxPoints = 60;
+    const step = Math.max(1, Math.floor(totalDays / maxPoints));
+    for (let i = step; i <= totalDays; i += step) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      if (d <= end) {
+        const ds = d.toISOString().slice(0, 10);
+        if (!dates.includes(ds)) dates.push(ds);
+      }
+    }
+    if (!dates.includes(today)) dates.push(today);
+  }
+
+  return dates;
+}
+
 export async function fetchHistoricalRates(
   from: string,
   to: string,
@@ -45,28 +108,12 @@ export async function fetchHistoricalRates(
   if (days > 0) {
     start.setDate(start.getDate() - days);
   } else {
-    // API data goes back ~2 years on jsdelivr
     start.setFullYear(end.getFullYear() - 2);
   }
 
-  // Sample dates to avoid too many requests
-  const dates: string[] = [];
-  const totalDays = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-  const maxPoints = 60;
-  const step = Math.max(1, Math.floor(totalDays / maxPoints));
+  const dates = buildDatesForPeriod(days, start, end);
 
-  for (let i = 0; i <= totalDays; i += step) {
-    const d = new Date(start);
-    d.setDate(d.getDate() + i);
-    if (d <= end) {
-      dates.push(d.toISOString().slice(0, 10));
-    }
-  }
-  // Always include the last date
-  const lastDate = end.toISOString().slice(0, 10);
-  if (!dates.includes(lastDate)) dates.push(lastDate);
-
-  // Fetch all dates in parallel (batched to avoid overwhelming)
+  // Fetch all dates in parallel (batched)
   const batchSize = 10;
   const results: HistoricalPoint[] = [];
 
@@ -74,7 +121,8 @@ export async function fetchHistoricalRates(
     const batch = dates.slice(i, i + batchSize);
     const batchResults = await Promise.allSettled(
       batch.map(async (dateStr) => {
-        const data = await fetchWithFallback(dateStr, `currencies/${f}.min.json`);
+        const useLatest = dateStr === end.toISOString().slice(0, 10);
+        const data = await fetchWithFallback(useLatest ? 'latest' : dateStr, `currencies/${f}.min.json`);
         return {
           date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           rate: +(data[f][t]).toFixed(6),
