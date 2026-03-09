@@ -85,6 +85,9 @@ const Index = () => {
       <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-card/50 shrink-0">
         <TrendingUp size={20} className="text-primary" />
         <h1 className="text-sm font-semibold text-foreground tracking-tight">Exin</h1>
+        <div className="ml-auto">
+          <AppMenu theme={theme} onToggleTheme={toggleTheme} />
+        </div>
       </header>
 
       {/* Tab Navigator */}
