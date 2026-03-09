@@ -134,7 +134,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
                     !disabled && 'hover:border-primary/40 cursor-pointer'
                   )}
                 >
-                  <span className="text-base leading-none">{currency.flag}</span>
+                  <CurrencyIcon code={currency.code} flag={currency.flag} size="sm" />
                   <span className="font-semibold">{currency.code}</span>
                 </button>
               );
