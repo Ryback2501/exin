@@ -4,8 +4,10 @@ import { TabNavigator } from '@/components/TabNavigator';
 import { CurrencyPairSelector } from '@/components/CurrencyPairSelector';
 import { ExchangeChart } from '@/components/ExchangeChart';
 import { ConversionTable } from '@/components/ConversionTable';
+import { AppMenu } from '@/components/AppMenu';
 import { TrendingUp } from 'lucide-react';
 import { useExchangeRate, useHistoricalRates } from '@/hooks/useExchangeRate';
+import { useTheme } from '@/hooks/useTheme';
 
 let pairIdCounter = 0;
 function createPair(from: Currency, to: Currency): CurrencyPair {
@@ -20,6 +22,7 @@ function newRow(): ConversionRow {
 const defaultPair = createPair(currencies[0], currencies[1]); // USD/EUR
 
 const Index = () => {
+  const { theme, toggleTheme } = useTheme();
   const [tabs, setTabs] = useState<CurrencyPair[]>([defaultPair]);
   const [activeTabId, setActiveTabId] = useState<string>(defaultPair.id);
   const [showSelector, setShowSelector] = useState(false);
@@ -82,6 +85,9 @@ const Index = () => {
       <header className="flex items-center gap-3 px-6 py-3 border-b border-border bg-card/50 shrink-0">
         <TrendingUp size={20} className="text-primary" />
         <h1 className="text-sm font-semibold text-foreground tracking-tight">Exin</h1>
+        <div className="ml-auto">
+          <AppMenu theme={theme} onToggleTheme={toggleTheme} />
+        </div>
       </header>
 
       {/* Tab Navigator */}
