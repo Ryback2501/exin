@@ -81,11 +81,11 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
         {/* Header */}
         <div className="grid grid-cols-[1fr_1fr_40px] bg-muted/50">
           <div className="px-4 py-2.5 text-sm font-medium text-foreground flex items-center gap-2 border-r border-border">
-            <span className="text-2xl leading-none">{pair.from.flag}</span>
+            <CurrencyIcon code={pair.from.code} flag={pair.from.flag} size="lg" />
             <span className="text-muted-foreground">{pair.from.symbol}</span>
           </div>
           <div className="px-4 py-2.5 text-sm font-medium text-foreground flex items-center gap-2">
-            <span className="text-2xl leading-none">{pair.to.flag}</span>
+            <CurrencyIcon code={pair.to.code} flag={pair.to.flag} size="lg" />
             <span className="text-muted-foreground">{pair.to.symbol}</span>
           </div>
           <div />
