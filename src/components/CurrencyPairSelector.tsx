@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { currencies, Currency } from '@/data/currencies';
 import { CurrencyPill } from './CurrencyPill';
+import { CurrencyIcon } from './CurrencyIcon';
 import { Search, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,6 +42,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
       setTo(currency);
       setSelectingSide('from');
     }
+    setSearch('');
   };
 
   const isDisabled = (currency: Currency) => {
@@ -67,7 +69,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
           >
             {from ? (
               <>
-                <span className="text-lg leading-none">{from.flag}</span>
+                <CurrencyIcon code={from.code} flag={from.flag} />
                 <span className="font-semibold">{from.symbol}</span>
               </>
             ) : (
@@ -84,7 +86,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
           >
             {to ? (
               <>
-                <span className="text-lg leading-none">{to.flag}</span>
+                <CurrencyIcon code={to.code} flag={to.flag} />
                 <span className="font-semibold">{to.symbol}</span>
               </>
             ) : (
@@ -132,7 +134,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
                     !disabled && 'hover:border-primary/40 cursor-pointer'
                   )}
                 >
-                  <span className="text-base leading-none">{currency.flag}</span>
+                  <CurrencyIcon code={currency.code} flag={currency.flag} size="sm" />
                   <span className="font-semibold">{currency.code}</span>
                 </button>
               );

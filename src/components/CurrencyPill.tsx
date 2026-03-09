@@ -1,4 +1,5 @@
 import { Currency } from '@/data/currencies';
+import { CurrencyIcon } from './CurrencyIcon';
 import { cn } from '@/lib/utils';
 
 interface CurrencyPillProps {
@@ -38,13 +39,13 @@ export function CurrencyPill({
     >
       {flagSide === 'left' ? (
         <>
-          <span className="text-lg leading-none">{currency.flag}</span>
+          <CurrencyIcon code={currency.code} flag={currency.flag} />
           <span className="font-semibold">{currency.symbol}</span>
         </>
       ) : (
         <>
           <span className="font-semibold">{currency.symbol}</span>
-          <span className="text-lg leading-none">{currency.flag}</span>
+          <CurrencyIcon code={currency.code} flag={currency.flag} />
         </>
       )}
     </button>

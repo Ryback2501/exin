@@ -77,7 +77,9 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
               <stop offset="100%" stopColor={isUp ? 'hsl(152, 60%, 50%)' : 'hsl(0, 72%, 55%)'} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(215, 12%, 55%)' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(215, 12%, 55%)' }} axisLine={false} tickLine={false}
+            ticks={data.length > 8 ? [data[0].date, ...Array.from({ length: 6 }, (_, i) => data[Math.round(((i + 1) * (data.length - 1)) / 7)].date), data[data.length - 1].date] : undefined}
+          />
           <YAxis domain={[minRate * 0.998, maxRate * 1.002]} hide />
           <Tooltip
             contentStyle={{
