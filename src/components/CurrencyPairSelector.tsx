@@ -42,6 +42,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
       setTo(currency);
       setSelectingSide('from');
     }
+    setSearch('');
   };
 
   const isDisabled = (currency: Currency) => {
