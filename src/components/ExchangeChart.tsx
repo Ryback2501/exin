@@ -63,7 +63,7 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
           {pair.from.code} – {pair.to.code}
         </span>
         <span className="text-xs text-muted-foreground">
-          1 {pair.from.code} = {rate.toFixed(4)} {pair.to.code}
+          1 {pair.from.code} = {rate.toFixed(2)} {pair.to.code}
         </span>
         <span className={`text-xs font-medium ${isUp ? 'text-chart-up' : 'text-chart-down'}`}>
           {isUp ? '▲' : '▼'} {Math.abs(((data[data.length - 1].rate - data[0].rate) / data[0].rate) * 100).toFixed(2)}%
