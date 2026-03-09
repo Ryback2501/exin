@@ -69,7 +69,7 @@ export function CurrencyPairSelector({ onAccept, onCancel, initialFrom, initialT
           >
             {from ? (
               <>
-                <span className="text-lg leading-none">{from.flag}</span>
+                <CurrencyIcon code={from.code} flag={from.flag} />
                 <span className="font-semibold">{from.symbol}</span>
               </>
             ) : (
