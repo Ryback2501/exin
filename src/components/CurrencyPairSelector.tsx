@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { currencies, Currency } from '@/data/currencies';
 import { CurrencyPill } from './CurrencyPill';
+import { CurrencyIcon } from './CurrencyIcon';
 import { Search, X, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
