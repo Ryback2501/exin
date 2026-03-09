@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { CurrencyPair, ConversionRow } from '@/data/currencies';
+import { CurrencyIcon } from './CurrencyIcon';
 import { ArrowLeftRight, Trash2 } from 'lucide-react';
 
 interface ConversionTableProps {
