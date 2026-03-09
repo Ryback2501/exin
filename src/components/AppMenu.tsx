@@ -76,6 +76,7 @@ export function AppMenu({ theme, onToggleTheme }: AppMenuProps) {
                 .
               </p>
             </div>
+          </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
