@@ -63,7 +63,7 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
           {pair.from.code} – {pair.to.code}
         </span>
         <span className="text-xs text-muted-foreground">
-          1 {pair.from.code} = {rate.toFixed(4)} {pair.to.code}
+          1 {pair.from.code} = {rate.toFixed(2)} {pair.to.code}
         </span>
         <span className={`text-xs font-medium ${isUp ? 'text-chart-up' : 'text-chart-down'}`}>
           {isUp ? '▲' : '▼'} {Math.abs(((data[data.length - 1].rate - data[0].rate) / data[0].rate) * 100).toFixed(2)}%
@@ -77,7 +77,7 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
               <stop offset="100%" stopColor={isUp ? 'hsl(152, 60%, 50%)' : 'hsl(0, 72%, 55%)'} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(215, 12%, 55%)' }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'hsl(215, 12%, 55%)' }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
           <YAxis domain={[minRate * 0.998, maxRate * 1.002]} hide />
           <Tooltip
             contentStyle={{
@@ -87,7 +87,7 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
               fontSize: '12px',
               color: 'hsl(210, 20%, 92%)',
             }}
-            formatter={(value: number) => [value.toFixed(6), 'Rate']}
+            formatter={(value: number) => [value.toFixed(2), 'Rate']}
           />
           <Area
             type="monotone"
