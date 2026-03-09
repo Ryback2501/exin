@@ -1,4 +1,5 @@
 import { Currency } from '@/data/currencies';
+import { CurrencyIcon } from './CurrencyIcon';
 import { cn } from '@/lib/utils';
 
 interface CurrencyPillProps {
