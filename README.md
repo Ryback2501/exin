@@ -25,8 +25,8 @@ Use the live app here: [https://exin.lovable.app](https://exin.lovable.app)
 - Multi-pair workflow with tab-based navigation.
 - Multiple amount rows per pair (auto-add rows while typing).
 - Two-way conversion editing (`from -> to` and `to -> from`).
-- Live exchange rate fetching from `exchangerate.host`.
-- Historical chart based on API timeframe data with selectable periods (`1W`, `1M`, `1Y`).
+- Live exchange rate fetching from `@fawazahmed0/currency-api` (CDN) with a fallback endpoint.
+- Historical chart data from dated API snapshots with selectable periods (`1W`, `1M`, `1Y`).
 - Currency search and pair selection modal.
 - PWA setup with service worker registration.
 
@@ -132,14 +132,14 @@ src/
   components/      UI and feature components (tabs, selector, table, chart)
   hooks/           Data/query hooks
   pages/           Route pages
-  services/        API integration (`exchangerate.host`)
+  services/        API integration (`@fawazahmed0/currency-api` + fallback)
   data/            Currency catalog and related types
 ```
 
 ## Notes
 
-- Exchange rates are requested from `https://api.exchangerate.host`.
-- Historical chart data is requested via the API timeframe endpoint and filtered by the selected period.
+- Exchange rates are requested from `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api` with fallback to `https://currency-api.pages.dev`.
+- Historical chart data is fetched from dated snapshots and sampled to keep requests manageable.
 - The app currently focuses on a compact, fast experimentation flow.
 
 ## Contributing
