@@ -87,7 +87,7 @@ export function ExchangeChart({ pair, rate, isLoading, historicalData, isLoading
               fontSize: '12px',
               color: 'hsl(210, 20%, 92%)',
             }}
-            formatter={(value: number) => [value.toFixed(6), 'Rate']}
+            formatter={(value: number) => [value.toFixed(2), 'Rate']}
           />
           <Area
             type="monotone"
