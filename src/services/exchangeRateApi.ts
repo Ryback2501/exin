@@ -124,7 +124,7 @@ export async function fetchHistoricalRates(
         const useLatest = dateStr === end.toISOString().slice(0, 10);
         const data = await fetchWithFallback(useLatest ? 'latest' : dateStr, `currencies/${f}.min.json`);
         return {
-          date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          date: new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }),
           rate: +(data[f][t]).toFixed(6),
         };
       })
