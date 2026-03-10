@@ -26,7 +26,7 @@ export function AppMenu({ theme, onToggleTheme }: AppMenuProps) {
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+          <button className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground focus:outline-none focus:ring-0 focus:ring-transparent" onPointerDown={(e) => e.preventDefault()}>
             <Menu size={18} />
           </button>
         </DropdownMenuTrigger>
