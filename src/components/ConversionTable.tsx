@@ -134,7 +134,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
         })}
       </div>
       <p className="text-xs text-muted-foreground mt-2">
-        Rate: 1 {pair.from.code} = {rate ? rate.toFixed(2) : '…'} {pair.to.code}
+        Rate: 1 {pair.from.code} = {rate ? rate.toFixed(toDecimals) : '…'} {pair.to.code}
       </p>
     </div>
   );
