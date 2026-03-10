@@ -47,5 +47,5 @@ jobs:
         with:
           generate_release_notes: true
           files: |
-            exin-${GITHUB_REF_NAME}-dist.zip
-            exin-${GITHUB_REF_NAME}-dist.zip.sha256
+            exin-${{ github.ref_name }}-dist.zip
+            exin-${{ github.ref_name }}-dist.zip.sha256
