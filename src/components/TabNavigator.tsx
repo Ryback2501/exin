@@ -23,11 +23,11 @@ export function TabNavigator({ tabs, activeTabId, onSelectTab, onCloseTab, onAdd
           )}
           onPointerDown={() => onSelectTab(tab.id)}
         >
-          <span className="text-base leading-none">{tab.from.flag}</span>
+          <CurrencyIcon code={tab.from.code} flag={tab.from.flag} size="sm" />
           <span className="text-xs font-semibold">{tab.from.symbol}</span>
           <span className="text-muted-foreground text-xs">/</span>
           <span className="text-xs font-semibold">{tab.to.symbol}</span>
-          <span className="text-base leading-none">{tab.to.flag}</span>
+          <CurrencyIcon code={tab.to.code} flag={tab.to.flag} size="sm" />
           {tabs.length > 1 && (
             <button
               onPointerDown={(e) => {
