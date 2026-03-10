@@ -20,6 +20,10 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
   const effectiveRate = rate ?? 1;
   const reverseRate = effectiveRate ? 1 / effectiveRate : 1;
 
+  const CRYPTO_CODES = new Set(['BTC', 'ETH', 'XRP', 'SOL', 'DOGE']);
+  const fromDecimals = CRYPTO_CODES.has(pair.from.code) ? 8 : 2;
+  const toDecimals = CRYPTO_CODES.has(pair.to.code) ? 8 : 2;
+
   const handleFromChange = useCallback(
     (id: string, value: string) => {
       const updated = rows.map((r) => {
@@ -28,7 +32,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
         return {
           ...r,
           fromAmount: value,
-          toAmount: value && !isNaN(num) ? (num * effectiveRate).toFixed(2) : '',
+          toAmount: value && !isNaN(num) ? (num * effectiveRate).toFixed(toDecimals) : '',
         };
       });
       const last = updated[updated.length - 1];
@@ -37,7 +41,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
       }
       onRowsChange(updated);
     },
-    [effectiveRate, rows, onRowsChange]
+    [effectiveRate, toDecimals, rows, onRowsChange]
   );
 
   const handleToChange = useCallback(
@@ -48,7 +52,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
         return {
           ...r,
           toAmount: value,
-          fromAmount: value && !isNaN(num) ? (num * reverseRate).toFixed(2) : '',
+          fromAmount: value && !isNaN(num) ? (num * reverseRate).toFixed(fromDecimals) : '',
         };
       });
       const last = updated[updated.length - 1];
@@ -57,7 +61,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
       }
       onRowsChange(updated);
     },
-    [reverseRate, rows, onRowsChange]
+    [reverseRate, fromDecimals, rows, onRowsChange]
   );
 
   const removeRow = (id: string) => {
@@ -130,7 +134,7 @@ export function ConversionTable({ pair, rows, onRowsChange, onSwap, rate }: Conv
         })}
       </div>
       <p className="text-xs text-muted-foreground mt-2">
-        Rate: 1 {pair.from.code} = {rate ? rate.toFixed(2) : '…'} {pair.to.code}
+        Rate: 1 {pair.from.code} = {rate ? rate.toFixed(toDecimals) : '…'} {pair.to.code}
       </p>
     </div>
   );
