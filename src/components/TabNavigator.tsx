@@ -1,4 +1,5 @@
 import { CurrencyPair } from '@/data/currencies';
+import { CurrencyIcon } from './CurrencyIcon';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
