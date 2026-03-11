@@ -28,9 +28,8 @@ jobs:
           node-version: 20
           cache: npm
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Lint (non-blocking for release)
-        continue-on-error: true
+        run: npm ci
+      - name: Lint
         run: npm run lint
       - name: Run tests
         run: npm run test
