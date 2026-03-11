@@ -19,8 +19,17 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true, allowExportNames: ["useFormField", "useSidebar"] },
+      ],
       "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    files: ["vitest.config.ts", "tailwind.config.ts"],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 );

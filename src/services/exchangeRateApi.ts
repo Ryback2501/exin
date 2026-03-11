@@ -6,7 +6,9 @@ async function fetchWithFallback(date: string, endpoint: string): Promise<any> {
   try {
     const res = await fetch(cdnUrl);
     if (res.ok) return res.json();
-  } catch {}
+  } catch {
+    // Ignore primary endpoint failures and continue with fallback.
+  }
   // Fallback
   const fallbackUrl = `https://${date}.${FALLBACK_BASE.replace('https://', '')}/v1/${endpoint}`;
   const res = await fetch(fallbackUrl);
