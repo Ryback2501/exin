@@ -1,13 +1,18 @@
-import { useState, useCallback } from 'react';
+import { Suspense, lazy, useState, useCallback } from 'react';
 import { currencies, CurrencyPair, Currency, ConversionRow } from '@/data/currencies';
 import { TabNavigator } from '@/components/TabNavigator';
-import { CurrencyPairSelector } from '@/components/CurrencyPairSelector';
-import { ExchangeChart } from '@/components/ExchangeChart';
 import { ConversionTable } from '@/components/ConversionTable';
 import { AppMenu } from '@/components/AppMenu';
 import { TrendingUp } from 'lucide-react';
 import { useExchangeRate, useHistoricalRates } from '@/hooks/useExchangeRate';
 import { useTheme } from '@/hooks/useTheme';
+
+const CurrencyPairSelector = lazy(() =>
+  import('@/components/CurrencyPairSelector').then((module) => ({ default: module.CurrencyPairSelector }))
+);
+const ExchangeChart = lazy(() =>
+  import('@/components/ExchangeChart').then((module) => ({ default: module.ExchangeChart }))
+);
 
 let pairIdCounter = 0;
 function createPair(from: Currency, to: Currency): CurrencyPair {
@@ -20,6 +25,22 @@ function newRow(): ConversionRow {
 }
 
 const defaultPair = createPair(currencies[0], currencies[1]); // USD/EUR
+
+function ExchangeChartFallback({ pair }: { pair: CurrencyPair }) {
+  return (
+    <div className="w-full">
+      <div className="flex items-baseline gap-3 mb-3">
+        <span className="text-lg font-semibold text-foreground">
+          {pair.from.code} - {pair.to.code}
+        </span>
+        <span className="text-xs text-muted-foreground">Loading...</span>
+      </div>
+      <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+        Obtaining exchange rate...
+      </div>
+    </div>
+  );
+}
 
 const Index = () => {
   const { theme, toggleTheme } = useTheme();
@@ -99,7 +120,9 @@ const Index = () => {
       {/* Content */}
       {activeTab &&
         <div className="flex-1 overflow-y-auto p-6 max-w-4xl mx-auto w-full space-y-6">
-          <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} historicalData={historicalData || []} isLoadingHistory={isLoadingHistory} onPeriodChange={setHistoryDays} />
+          <Suspense fallback={<ExchangeChartFallback pair={activeTab} />}>
+            <ExchangeChart pair={activeTab} rate={rate} isLoading={isLoading} historicalData={historicalData || []} isLoadingHistory={isLoadingHistory} onPeriodChange={setHistoryDays} />
+          </Suspense>
           <ConversionTable
             pair={activeTab}
             rows={tabRows[activeTab.id] || [newRow()]}
@@ -112,7 +135,9 @@ const Index = () => {
 
       {/* Selector Modal */}
       {showSelector &&
-        <CurrencyPairSelector onAccept={handleAcceptPair} onCancel={() => setShowSelector(false)} />
+        <Suspense fallback={null}>
+          <CurrencyPairSelector onAccept={handleAcceptPair} onCancel={() => setShowSelector(false)} />
+        </Suspense>
       }
     </div>
   );
