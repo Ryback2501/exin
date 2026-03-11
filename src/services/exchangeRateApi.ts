@@ -1,7 +1,9 @@
 const CDN_BASE = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api';
 const FALLBACK_BASE = 'https://currency-api.pages.dev';
 
-async function fetchWithFallback(date: string, endpoint: string): Promise<any> {
+type CurrencyApiResponse = Record<string, Record<string, number>>;
+
+async function fetchWithFallback(date: string, endpoint: string): Promise<CurrencyApiResponse> {
   const cdnUrl = `${CDN_BASE}@${date}/v1/${endpoint}`;
   try {
     const res = await fetch(cdnUrl);
