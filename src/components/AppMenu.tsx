@@ -76,7 +76,7 @@ export function AppMenu({ theme, onToggleTheme }: AppMenuProps) {
                 .
               </p>
               <p className="text-xs text-muted-foreground/60 pt-1">
-                v1.0.0
+                v1.0.1
               </p>
             </div>
           </DialogDescription>
