@@ -1,6 +1,8 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 
+set "ExitCode=0"
+
 set "SshHost=%~1"
 set "SshUser=%~2"
 
@@ -16,7 +18,8 @@ set "HostPort=8080"
 where ssh >nul 2>&1
 if errorlevel 1 (
   echo ssh is not available in your Windows PATH.
-  exit /b 1
+  set "ExitCode=1"
+  goto :END
 )
 
 if "%SshHost%"=="" (
@@ -29,12 +32,14 @@ if "%SshUser%"=="" (
 
 if "%SshHost%"=="" (
   echo SSH host is required.
-  exit /b 1
+  set "ExitCode=1"
+  goto :END
 )
 
 if "%SshUser%"=="" (
   echo SSH user is required.
-  exit /b 1
+  set "ExitCode=1"
+  goto :END
 )
 
 set "RepoPath=%RepoGitUrl%"
@@ -50,12 +55,20 @@ for /f "tokens=1,2 delims=/" %%A in ("%RepoPath%") do (
 
 if "%RepoOwner%"=="" (
   echo Unsupported repo URL: %RepoGitUrl%
-  exit /b 1
+  set "ExitCode=1"
+  goto :END
 )
 
 if "%RepoName%"=="" (
   echo Unsupported repo URL: %RepoGitUrl%
-  exit /b 1
+  set "ExitCode=1"
+  goto :END
+)
+
+set "RepoBranchInput="
+set /p "RepoBranchInput=Enter repository branch for Dockerfile [main]: "
+if not "%RepoBranchInput%"=="" (
+  set "RepoBranch=%RepoBranchInput%"
 )
 
 set "DockerfileRawUrl=https://raw.githubusercontent.com/%RepoOwner%/%RepoName%/%RepoBranch%/%DockerfilePathInRepo%"
@@ -71,10 +84,14 @@ set "ExitCode=%ERRORLEVEL%"
 
 if not "%ExitCode%"=="0" (
   echo Remote deployment failed.
-  exit /b %ExitCode%
+  goto :END
 )
 
 echo Deployment completed. Opening %AppUrl% ...
 start "" "%AppUrl%"
 
-exit /b 0
+:END
+echo.
+set /p "=Pulsa ENTER para salir..." <nul
+set /p "DummyInput="
+exit /b %ExitCode%
