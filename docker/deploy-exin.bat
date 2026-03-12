@@ -92,6 +92,6 @@ start "" "%AppUrl%"
 
 :END
 echo.
-set /p "=Pulsa ENTER para salir..." <nul
+set /p "=Press ENTER to exit..." <nul
 set /p "DummyInput="
 exit /b %ExitCode%
