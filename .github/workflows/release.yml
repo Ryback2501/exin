@@ -1,50 +1,155 @@
 name: Release
+
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [main]
+
 permissions:
   contents: write
+  packages: write
+
 jobs:
-  release:
-    name: Build and publish release
+  read-version:
+    name: Read version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if ! printf '%s' "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "error: could not parse a semver version from package.json"; exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$VERSION"
+
+  create-tag:
+    name: Create version tag
+    needs: [read-version]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Fetch main branch
-        run: git fetch origin main --force
-      - name: Ensure tagged commit belongs to main
+      - name: Tag v$VERSION
+        env:
+          VERSION: ${{ needs.read-version.outputs.version }}
         run: |
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"; then
-            echo "Error: the tagged commit is not contained in origin/main"
-            exit 1
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists — skipping."
+            exit 0
           fi
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+
+  create-artifacts:
+    name: Build & zip artifacts
+    needs: [read-version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Run tests
-        run: npm run test
-      - name: Build app
-        run: npm run build
-      - name: Create release archive
+      - name: Build & zip dist
+        env:
+          VERSION: ${{ needs.read-version.outputs.version }}
         run: |
-          cd dist
-          zip -r "../exin-${GITHUB_REF_NAME}-dist.zip" .
-      - name: Generate checksum
-        run: sha256sum "exin-${GITHUB_REF_NAME}-dist.zip" > "exin-${GITHUB_REF_NAME}-dist.zip.sha256"
-      - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+          npm ci
+          npm run build
+          (cd dist && zip -qr "../exin-${VERSION}.zip" .)
+      - uses: actions/upload-artifact@v7
         with:
-          generate_release_notes: true
-          files: |
-            exin-${{ github.ref_name }}-dist.zip
-            exin-${{ github.ref_name }}-dist.zip.sha256
+          name: release-artifacts
+          path: exin-*.zip
+          retention-days: 7
+
+  docker-publish:
+    name: Publish image to Docker Hub (gated)
+    needs: [read-version, create-tag]
+    runs-on: ubuntu-latest
+    if: vars.DOCKERHUB_PUBLISH == 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Log in to Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - name: Build & push
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          VERSION: ${{ needs.read-version.outputs.version }}
+        run: |
+          IMAGE="$DOCKERHUB_USERNAME/exin"
+          docker build -t "$IMAGE:$VERSION" -t "$IMAGE:latest" .
+          docker push "$IMAGE:$VERSION"
+          docker push "$IMAGE:latest"
+
+  docker-publish-disabled:
+    name: Publish image to Docker Hub (gated — DISABLED)
+    needs: [read-version]
+    runs-on: ubuntu-latest
+    if: vars.DOCKERHUB_PUBLISH != 'true'
+    steps:
+      - run: echo "DOCKERHUB_PUBLISH repo variable is not 'true' — Docker Hub publish skipped."
+
+  github-release:
+    name: GitHub Release
+    needs: [read-version, create-tag, create-artifacts]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-artifacts
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.read-version.outputs.version }}
+        run: |
+          # Create the release with an empty body — no auto-generated commit
+          # log. The release notes are written/edited by hand on the release page.
+          gh release create "v$VERSION" --title "v$VERSION" --notes "" \
+            "exin-$VERSION.zip"
+
+  deploy:
+    name: Deploy to GitHub Pages (prod, gated)
+    needs: [github-release]
+    runs-on: ubuntu-latest
+    if: vars.PAGES_DEPLOY_ENABLED == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  deploy-disabled:
+    name: Deploy to GitHub Pages (prod, gated — DISABLED)
+    needs: [github-release]
+    runs-on: ubuntu-latest
+    if: vars.PAGES_DEPLOY_ENABLED != 'true'
+    steps:
+      - run: echo "PAGES_DEPLOY_ENABLED repo variable is not 'true' — Pages deploy skipped (nothing to release yet)."

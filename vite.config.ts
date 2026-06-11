@@ -4,8 +4,14 @@ import { fileURLToPath } from "url";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Base path. Defaults to the GitHub Pages project subpath (/exin/); the Docker
+// build sets VITE_BASE=/ to serve the SPA at the container root. Both `base` and
+// the PWA navigateFallback derive from this single value so they never drift.
+const base = process.env.VITE_BASE ?? "/exin/";
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base,
   server: {
     host: "::",
     port: 8080,
@@ -52,8 +58,8 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        // Para SPAs: sirve index.html en navegación
-        navigateFallback: "/index.html",
+        // Para SPAs: sirve index.html en navegación (respeta el base path)
+        navigateFallback: `${base}index.html`,
       },
     }),
     mode === "development" && componentTagger(),
