@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Bun is not used — npm (package-lock.json) is canonical
+bun.lock
+bun.lockb
