@@ -1,5 +1,10 @@
 name: PR dev to main
 
+# Fires on the release PR from dev into main. Confirms the source is dev, that dev
+# contains all of main, runs the version gate against package.json, runs CI,
+# then fast-forwards main to dev's SHA (requires the GH_PAT secret). Generalized
+# from Mockscii. The version-read step is the only stack-specific surface.
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]

@@ -1,5 +1,12 @@
 name: CI jobs
 
+# Reusable CI. Called by pr-work-to-dev.yml and pr-dev-to-main.yml.
+# Generalized from Mockscii. The kick-off skill resolves every {{placeholder}}
+# from the chosen stack adapter and DELETES whole jobs that don't apply to the
+# project (e.g. a library with no docker image drops the `docker` job; a CLI may
+# drop `e2e`). Keep every job that survives wired into branch-protection's
+# required checks.
+
 on:
   workflow_call: {}
 
@@ -17,11 +24,11 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - run: npm run lint
+      - run: "npm ci"
+      - run: "npm run lint"
 
-  test:
-    name: test
+  unit:
+    name: unit
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -30,8 +37,8 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - run: npm run test
+      - run: "npm ci"
+      - run: "npm run test"
 
   build:
     name: build
@@ -43,13 +50,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - run: npm run build
+      - run: "npm ci"
+      - run: "npm run build"
       - uses: actions/upload-artifact@v7
         with:
-          name: dist
+          name: build-output
           path: dist
 
+  # --- optional: delete if the project ships no container image ---
   docker:
     name: docker
     runs-on: ubuntu-latest
@@ -72,3 +80,29 @@ jobs:
       - name: Stop container
         if: always()
         run: docker rm -f exin || true
+
+  # --- optional: secret + dependency scan. Toggled by the SECURITY_SCAN repo
+  #     variable (flip it on without editing this file). When enabled, kick-off
+  #     adds `CI / security` to the branch-protection required checks so a finding
+  #     blocks merge. Deterministic tooling — no LLM in the loop. ---
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    if: vars.SECURITY_SCAN == 'true'
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          # Personal accounts need no license; GitHub *orgs* require GITLEAKS_LICENSE.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - name: Dependency vulnerability audit
+        run: |
+          npm audit --audit-level=high

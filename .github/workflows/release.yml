@@ -1,5 +1,11 @@
 name: Release
 
+# Fires on every push to main (i.e. after a dev->main fast-forward). Tags the
+# version, builds & uploads release artifacts, creates the GitHub Release, and —
+# only when the matching repo variable is enabled — publishes a Docker image and/or
+# deploys to a host. Generalized from Mockscii. Build/version surfaces are the only
+# stack-specific bits; publish/deploy stay gated so a fresh repo releases cleanly.
+
 on:
   push:
     branches: [main]
@@ -56,7 +62,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: Build & zip dist
+      - name: Build & zip
         env:
           VERSION: ${{ needs.read-version.outputs.version }}
         run: |
@@ -114,13 +120,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ needs.read-version.outputs.version }}
         run: |
-          # Create the release with an empty body — no auto-generated commit
-          # log. The release notes are written/edited by hand on the release page.
+          # Empty body — release notes are written by hand on the release page.
           gh release create "v$VERSION" --title "v$VERSION" --notes "" \
             "exin-$VERSION.zip"
 
   deploy:
-    name: Deploy to GitHub Pages (prod, gated)
+    name: Deploy (prod, gated)
     needs: [github-release]
     runs-on: ubuntu-latest
     if: vars.PAGES_DEPLOY_ENABLED == 'true'
@@ -137,8 +142,8 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - run: npm run build
+      - run: "npm ci"
+      - run: "npm run build"
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
@@ -147,9 +152,9 @@ jobs:
         uses: actions/deploy-pages@v5
 
   deploy-disabled:
-    name: Deploy to GitHub Pages (prod, gated — DISABLED)
+    name: Deploy (prod, gated — DISABLED)
     needs: [github-release]
     runs-on: ubuntu-latest
     if: vars.PAGES_DEPLOY_ENABLED != 'true'
     steps:
-      - run: echo "PAGES_DEPLOY_ENABLED repo variable is not 'true' — Pages deploy skipped (nothing to release yet)."
+      - run: echo "PAGES_DEPLOY_ENABLED repo variable is not 'true' — deploy skipped."
